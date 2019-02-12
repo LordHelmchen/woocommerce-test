@@ -1,5 +1,5 @@
-# VVV Custom site template
-For when you just need a simple dev site
+# Woocommerce test
+Starts as a simple dev site
 
 ## Overview
 This template will allow you to create a WordPress dev environment using only `vvv-custom.yml`.
