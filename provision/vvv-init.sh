@@ -3,6 +3,7 @@
 
 # fetch the first host as the primary domain. If none is available, generate a default using the site name
 DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
+DOMAIN_NO_TLD=`echo ${DOMAIN} | grep -Po '.*(?=\.)'`
 SITE_TITLE=`get_config_value 'site_title' "${DOMAIN}"`
 WP_VERSION=`get_config_value 'wp_version' 'latest'`
 WP_TYPE=`get_config_value 'wp_type' "single"`
@@ -29,9 +30,19 @@ fi
 if [[ ! -f "${VVV_PATH_TO_SITE}/public_html/wp-config.php" ]]; then
   echo "Configuring WordPress Stable..."
   noroot wp core config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+// Match any requests made via xip.io.
+if ( isset( \$_SERVER['HTTP_HOST'] ) && preg_match('/^(${DOMAIN_NO_TLD}.)\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(.xip.io)\z/', \$_SERVER['HTTP_HOST'] ) ) {
+    define( 'WP_HOME', 'http://' . \$_SERVER['HTTP_HOST'] );
+    define( 'WP_SITEURL', 'http://' . \$_SERVER['HTTP_HOST'] );
+}
 define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_DISPLAY', false );
+define( 'WP_DEBUG_LOG', true );
 define( 'SCRIPT_DEBUG', true );
+define( 'JETPACK_DEV_DEBUG', true );
 PHP
+
+
 fi
 
 if ! $(noroot wp core is-installed); then
